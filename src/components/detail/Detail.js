@@ -1,3 +1,6 @@
+/**
+ * Created by xh on 2018/8/6.
+ */
 import React, {Component} from 'react'
 import {
     Text,
@@ -13,23 +16,22 @@ import {
     ImageBackground,
     TouchableOpacity
 } from 'react-native'
-//import ScrollableTabView from 'react-native-scrollable-tab-view'
-//import Parabolic from 'react-native-parabolic'
 import px2dp from '../../util'
 import LocalImg from '../../config/images'
 import data from '../../config/data'
 import NavBar from '../common/NavBar'
-//import TabViewBar from './TabViewBar'
-//import GoodsList from './GoodsList'
-//import Comments from './Comments'
-//import ShopBar from './ShopBar'
+import Tab from '../common/Tab'
 import {BlurView} from 'react-native-blur'
+import GoodsList from './GoodsList'
+import Comments from './Comments'
+import ShopBar from './ShopBar'
 let {width, height} = Dimensions.get('window')
 
-export default class DetailPage extends Component {
+export default class DetailPage extends Component<Props> {
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
+            index: 0,
             scrollY: 0,
             titleOpacity: 0,
             activeOpacity: 1,
@@ -65,32 +67,38 @@ export default class DetailPage extends Component {
                     {key: "减", text: "满20减2，满30减3，满40减4（不与美食活动同享）"},
                     {key: "特", text: "双人餐特惠"}
                 ]
-            }
+            },
+            tablist: [{id: 0, name: '商品'}, {id: 1, name: '评价(4.1分)'}]
         }
     }
 
+
     componentDidMount() {
-        let marginTop = 18 + px2dp(80 + this.state.data.activities.length * 18)
-        let {scrollY} = this.refs.goodsList.state
-        let activeHeight = px2dp(18) * 2
-        this.setState({
-            activeOpacity: scrollY.interpolate({inputRange: [0, activeHeight], outputRange: [1, 0]}),
-            bgScale: scrollY.interpolate({inputRange: [-marginTop, 0, marginTop], outputRange: [2, 1, 1]}),
-            headOpacity: scrollY.interpolate({inputRange: [0, activeHeight, marginTop], outputRange: [1, 1, 0]}),
-            titleOpacity: scrollY.interpolate({inputRange: [0, marginTop - 10, marginTop], outputRange: [0, 0, 1]}),
-            scrollY: scrollY.interpolate({
-                inputRange: [0, marginTop, marginTop],
-                outputRange: [0, -marginTop, -marginTop]
-            }),
-            bgY: scrollY.interpolate({
-                inputRange: [-marginTop, 0, marginTop, marginTop],
-                outputRange: [marginTop / 2, 0, -marginTop / 3, -marginTop / 3]
-            })
-        })
+        /*    let marginTop = 18 + px2dp(80 + this.state.data.activities.length * 18)
+         let {scrollY} = this.refs.goodsList.state
+         let activeHeight = px2dp(18) * 2
+         this.setState({
+         activeOpacity: scrollY.interpolate({inputRange: [0, activeHeight], outputRange: [1, 0]}),
+         bgScale: scrollY.interpolate({inputRange: [-marginTop, 0, marginTop], outputRange: [2, 1, 1]}),
+         headOpacity: scrollY.interpolate({inputRange: [0, activeHeight, marginTop], outputRange: [1, 1, 0]}),
+         titleOpacity: scrollY.interpolate({inputRange: [0, marginTop - 10, marginTop], outputRange: [0, 0, 1]}),
+         scrollY: scrollY.interpolate({
+         inputRange: [0, marginTop, marginTop],
+         outputRange: [0, -marginTop, -marginTop]
+         }),
+         bgY: scrollY.interpolate({
+         inputRange: [-marginTop, 0, marginTop, marginTop],
+         outputRange: [marginTop / 2, 0, -marginTop / 3, -marginTop / 3]
+         })
+         })*/
+    }
+
+    imageLoaded() {
+        this.setState({viewRef: findNodeHandle(this.refs.backgroundImage)})
     }
 
     back() {
-        this.props.navigator.pop()
+        this.props.navigation.goBack();
     }
 
     onAdd(data) {
@@ -98,10 +106,6 @@ export default class DetailPage extends Component {
         this.setState({
             addBtnY: data.y
         })
-        this.refs["parabolic"].run(pos, data)
-    }
-
-    parabolicEnd(data) {
         let {selected, lens} = this.state
         let num = (lens[data.data.key] || 0) + 1
         let price = lens.maxPrice || 0
@@ -115,37 +119,6 @@ export default class DetailPage extends Component {
         this.refs.shopbar.runAnimate()
     }
 
-    renderGoods() {
-        let marginTop = 18 + px2dp(80 + this.state.data.activities.length * 18)
-        let MAIN_HEIGHT = height - NavBar.topbarHeight
-        let CONTENT_HEIGHT = MAIN_HEIGHT - marginTop
-        let style = {
-            transform: [{
-                translateY: this.state.scrollY
-            }]
-        }
-        if (Platform.OS == "android") {
-            style.height = height + 80
-        }
-
-        return (
-            <Animated.View style={[styles.topView, style]}>
-                <View style={{
-                    backgroundColor: "#f3f3f3",
-                    height: MAIN_HEIGHT,
-                    width,
-                    marginTop
-                }}>
-                   {/* <ScrollableTabView page={0} renderTabBar={() => <TabViewBar/>}>
-                        <GoodsList ref="goodsList" minus={this.minusItem.bind(this)} lens={this.state.lens}
-                                   goods={this.state.goods} onAdd={this.onAdd.bind(this)} headHeight={marginTop}
-                                   tabLabel="商品"/>
-                        <Comments headHeight={marginTop} tabLabel="评价(4.1分)"/>
-                    </ScrollableTabView>*/}
-                </View>
-            </Animated.View>
-        )
-    }
 
     minusItem(obj) {
         let {selected, lens} = this.state
@@ -163,6 +136,11 @@ export default class DetailPage extends Component {
             }
         }
         this.setState({selected, lens})
+    }
+
+
+    changeTab(index) {
+        this.setState({index: index})
     }
 
     renderActivities() {
@@ -199,8 +177,38 @@ export default class DetailPage extends Component {
         }
     }
 
-    imageLoaded() {
-        this.setState({viewRef: findNodeHandle(this.refs.backgroundImage)})
+    renderGoods() {
+        let marginTop = 18 + px2dp(80 + this.state.data.activities.length * 18)
+        let MAIN_HEIGHT = height - NavBar.topbarHeight
+        let CONTENT_HEIGHT = MAIN_HEIGHT - marginTop
+        let style = {
+            transform: [{
+                translateY: this.state.scrollY
+            }]
+        }
+        if (Platform.OS == "android") {
+            style.height = height + 80
+        }
+        return <Animated.View style={[styles.topView, style]}>
+            <View style={{
+                backgroundColor: "#f3f3f3",
+                height: MAIN_HEIGHT,
+                width,
+                marginTop
+            }}>
+                <Tab index={this.state.index}
+                     data={this.state.tablist}
+                     onChange={index => this.changeTab(index)}>
+                </Tab>
+                {this.state.index === 0 && <GoodsList ref="goodsList"
+                                                      minus={this.minusItem.bind(this)} lens={this.state.lens}
+                                                      goods={this.state.goods}
+                                                      onAdd={this.onAdd.bind(this)}
+                                                      headHeight={marginTop}/> }
+                {this.state.index === 1 && <Comments headHeight={marginTop}/>}
+            </View>
+        </Animated.View>
+
     }
 
     render() {
@@ -213,68 +221,53 @@ export default class DetailPage extends Component {
             downsampleFactor: 10,
             overlayColor: 'rgba(255,255,255,.1)'
         }
-        return (
-            <View style={{flex: 1, backgroundColor: "#f3f3f3"}}>
-                <Animated.ImageBackground  source={LocalImg.bg} ref={'backgroundImage'} onLoadEnd={this.imageLoaded.bind(this)}
-                                style={[
-                                    styles.bg,
-                                    {
-                                        transform: [{translateY: this.state.bgY},
-                                            {scale: this.state.bgScale}]
-                                    }
-                                ]}>
-                    <BlurView {...props} style={styles.blur}/>
-                </Animated.ImageBackground>
-                <View style={styles.head}>
-                    <Animated.View
-                        style={{flexDirection: "row", paddingHorizontal: 16, opacity: this.state.headOpacity}}>
-                        <ImageBackground  source={LocalImg.bg} style={styles.logo}/>
-                        <View style={{marginLeft: 14, flex: 1}}>
-                            <Text style={{color: "#fff"}}>{data.name}</Text>
-                            <TouchableOpacity>
-                                <View style={{flexDirection: "row", paddingTop: 8, paddingBottom: 18}}>
-                                    {data.fengniao ? (
-                                        <Text style={[styles.label2, {marginRight: 5}]}>{"蜂鸟专送"}</Text>) : null}
-                                    <Text style={{color: "#fff", fontSize: px2dp(12)}}>{`${data.time}分钟送达`}</Text>
-                                </View>
-                            </TouchableOpacity>
-                            <Text style={{color: "#fff", fontSize: px2dp(12)}} numberOfLines={1}>{data.bulletin}</Text>
-                        </View>
-                    </Animated.View>
-                    {this.renderActivities()}
-                </View>
-                {this.renderGoods()}
-                <NavBar
-                    title={data.name}
-                    titleStyle={{opacity: this.state.titleOpacity}}
-                    style={{backgroundColor: "transparent", position: "absolute", top: 0, width}}
-                    leftIcon="ios-arrow-back"
-                    leftPress={this.back.bind(this)}
-                    rightIcon="ios-more"
-                    rightPress={() => {
-                    }}
-                />
-         {/*       <Parabolic
-                    ref={"parabolic"}
-                    style={[styles.tmpBtn, {top: this.state.addBtnY}]}
-                    renderChildren={() => {
-                        return (
-                            <View style={{
-                                width: px2dp(14),
-                                height: px2dp(14),
-                                backgroundColor: "#3190e8",
-                                borderRadius: px2dp(7),
-                                overflow: "hidden"
-                            }}></View>
-                        )
-                    }}
-                    animateEnd={this.parabolicEnd.bind(this)}
-                />*/}
-          {/*      <ShopBar ref={"shopbar"} list={this.state.selected} lens={this.state.lens}/>*/}
+        return <View style={{flex: 1, backgroundColor: "#f3f3f3"}}>
+            <ImageBackground source={LocalImg.bg} ref={'backgroundImage'} onLoadEnd={this.imageLoaded.bind(this)}
+                             style={[
+                                 styles.bg,
+                                 {
+                                     transform: [{translateY: this.state.bgY},
+                                         {scale: this.state.bgScale}]
+                                 }
+                             ]}>
+
+            </ImageBackground>
+            <BlurView {...props} style={styles.absolute}/>
+
+            <View style={styles.head}>
+                <Animated.View
+                    style={{flexDirection: "row", paddingHorizontal: 16, opacity: this.state.headOpacity}}>
+                    <ImageBackground source={LocalImg.bg} style={styles.logo}/>
+                    <View style={{marginLeft: 14, flex: 1}}>
+                        <Text style={{color: "#fff"}}>{data.name}</Text>
+                        <TouchableOpacity>
+                            <View style={{flexDirection: "row", paddingTop: 8, paddingBottom: 18}}>
+                                {data.fengniao ? (
+                                    <Text style={[styles.label2, {marginRight: 5}]}>{"蜂鸟专送"}</Text>) : null}
+                                <Text style={{color: "#fff", fontSize: px2dp(12)}}>{`${data.time}分钟送达`}</Text>
+                            </View>
+                        </TouchableOpacity>
+                        <Text style={{color: "#fff", fontSize: px2dp(12)}} numberOfLines={1}>{data.bulletin}</Text>
+                    </View>
+                </Animated.View>
+                {this.renderActivities()}
             </View>
-        )
+            {this.renderGoods()}
+            <NavBar
+                titleStyle={{opacity: this.state.titleOpacity}}
+                style={{backgroundColor: "transparent", position: "absolute", top: 0, width}}
+                leftIcon="ios-arrow-back"
+                leftPress={this.back.bind(this)}
+                rightIcon="ios-more"
+                rightPress={() => {
+                }}
+            />
+            <ShopBar ref={"shopbar"} list={this.state.selected} lens={this.state.lens}/>
+        </View>
+
     }
 }
+
 
 const styles = StyleSheet.create({
     head: {
@@ -288,21 +281,15 @@ const styles = StyleSheet.create({
     },
     bg: {
         width,
-        height: width,
-        resizeMode: "cover"
+        height: px2dp(180),
     },
-    blur: {
+    absolute: {
         position: "absolute",
-        left: 0,
-        right: 0,
-        top: 0,
-        width,
-        height: width,
+        top: 0, left: 0, bottom: -1, right: 0,
     },
     logo: {
         width: px2dp(80),
-        height: px2dp(80),
-        resizeMode: "cover"
+        height: px2dp(80)
     },
     label2: {
         fontSize: 10,

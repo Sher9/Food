@@ -15,7 +15,6 @@ import {
 export default class Profile extends Component {
     constructor(props) {
         super(props);
-        this.open = this.open.bind(this);
         this.state = {
             visible:false,
             imageUrl: require('../../static/images/avatar.jpg')
@@ -23,10 +22,6 @@ export default class Profile extends Component {
     }
 
 
-    open() {
-        console.log(111)
-        this.setState({visible: true})
-    }
     _beginUpImage = () => {
         let params = {
             path: '',    //本地文件地址
@@ -47,7 +42,6 @@ export default class Profile extends Component {
             let formData = new FormData();
             let file = {uri: params.path, type: 'multipart/form-data', name: ary[ary.length - 1]};
             formData.append("file", file);
-/*
             fetch('http://localhost:8010/birds/' + url, {
                 method: 'POST',
                 headers: {
@@ -63,7 +57,7 @@ export default class Profile extends Component {
                 .catch((err) => {
                     console.log('err', err);
                     reject(err);
-                });*/
+                });
         });
     };
 

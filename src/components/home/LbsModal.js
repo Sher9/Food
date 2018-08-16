@@ -67,14 +67,14 @@ export default class LbsModal extends Component {
         return (
             <Modal
                 style={styles.wrap}
-                animationType={'slide'}
+                animationType={'fade'}
                 onRequestClose={() => {
                 }}
                 visible={this.props.modalVisible}
             >
                 <NavBar
                     title="选择收货地址"
-                    leftIcon="ios-close"
+                    leftIcon="ios-arrow-back"
                     leftPress={this.closeModal.bind(this)}
                 />
                 <View style={styles.searchView}>

@@ -37,7 +37,7 @@ export default class UserProfile extends Component {
                     leftPress={this.back.bind(this)}
                 />
                 <ScrollView>
-                    <Item name="头像" avatar={2} first={true} onClick={() => this.open.bind(this)}/>
+                    <Item name="头像" avatar={2} first={true} onPress={this.open.bind(this)}/>
                     <Item name="用户名" disable={true} subName={this.state.username}/>
                     <Text style={styles.title}>{"账号绑定"}</Text>
                     <Item name="手机" font="FontAwesome" icon="mobile" subName="135****0418"/>

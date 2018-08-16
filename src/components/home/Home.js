@@ -1,80 +1,96 @@
-import React, {Component} from 'react'
+/**
+ * Created by xh on 2018/7/13.
+ */
+import React, {Component} from 'react';
 import {
+    Platform,
+    StyleSheet,
     Text,
     View,
-    BackAndroid,
     ScrollView,
-    StyleSheet,
-    AlertIOS,
     RefreshControl,
-    TouchableOpacity,
+    Animated,
+    Dimensions,
+    TouchableWithoutFeedback,
     TouchableNativeFeedback,
     TouchableHighlight,
+    TouchableOpacity,
     Image,
-    TextInput,
-    Platform,
-    TouchableWithoutFeedback,
-    Dimensions,
     ActivityIndicator,
-    Animated
-} from 'react-native'
-import LocalImg from '../../config/images'
+    BackHandler
+} from 'react-native';
+import Search from './Search'
 import px2dp from '../../util'
-import Icon from 'react-native-vector-icons/Ionicons'
-import Swiper from 'react-native-swiper'
-
-import SearchView from './SearchView'
-import LbsModal from './LbsModal'
-import TabView from '../common/TabView'
-import Bz from './Bz'
-import DetailPage from '../detail/Detail'
-import data from '../../config/data'
-
+import LocalImg from '../../config/images'
 const isIOS = Platform.OS == "ios"
 const {width, height} = Dimensions.get('window')
-const headH = px2dp(isIOS ? 140 : 120)
-const InputHeight = px2dp(28)
-
-export default class HomePage extends Component {
+const headH = px2dp(isIOS ? 140 : 120);
+const InputHeight = px2dp(28);
+import Icon from 'react-native-vector-icons/Ionicons'
+import Swiper from 'react-native-swiper'
+import data from '../../config/data'
+import Bz from './Bz';
+import LbsModal from './LbsModal'
+type Props = {};
+export default class App extends Component<Props> {
     constructor(props) {
         super(props)
         this.state = {
-            location: "三里屯SOHO",
+            location: "维嘉创意大厦",
             scrollY: new Animated.Value(0),
-            searchView: new Animated.Value(0),
+            searchView: false,
             modalVisible: false,
             searchBtnShow: true,
             listLoading: false,
             isRefreshing: false
-        }
-
+        };
         this.SEARCH_BOX_Y = px2dp(isIOS ? 48 : 43);
         this.SEARCH_FIX_Y = headH - px2dp(isIOS ? 64 : 44);
         this.SEARCH_KEY_P = px2dp(58);
-        this.SEARCH_DIFF_Y = this.SEARCH_FIX_Y - this.SEARCH_BOX_Y
-        this.SEARCH_FIX_DIFF_Y = headH - this.SEARCH_FIX_Y - headH
+        this.SEARCH_DIFF_Y = this.SEARCH_FIX_Y - this.SEARCH_BOX_Y;
+        this.SEARCH_FIX_DIFF_Y = headH - this.SEARCH_FIX_Y - headH;
     }
 
     componentDidMount() {
-        BackAndroid.addEventListener('hardwareBackPress', function () {
-            BackAndroid.exitApp(0)
+        BackHandler.addEventListener('hardwareBackPress', function () {
+            BackHandler.exitApp(0)
             return true
         })
+    }
+
+    openSearch(){
+        this.setState({searchView: true})
+    }
+
+    openLbs() {
+        this.setState({modalVisible: true})
+    }
+
+    changeLocation(location) {
+        this.setState({location})
+    }
+
+    _onRefresh() {
+        this.setState({isRefreshing: true});
+        setTimeout(() => {
+            this.setState({isRefreshing: false});
+        }, 2000)
     }
 
     _renderHeader() {
         let searchY = this.state.scrollY.interpolate({
             inputRange: [0, this.SEARCH_BOX_Y, this.SEARCH_FIX_Y, this.SEARCH_FIX_Y],
             outputRange: [0, 0, this.SEARCH_DIFF_Y, this.SEARCH_DIFF_Y]
-        })
+        });
         let lbsOpaticy = this.state.scrollY.interpolate({
             inputRange: [0, this.SEARCH_BOX_Y],
             outputRange: [1, 0]
-        })
+        });
         let keyOpaticy = this.state.scrollY.interpolate({
             inputRange: [0, this.SEARCH_BOX_Y, this.SEARCH_KEY_P],
             outputRange: [1, 1, 0]
-        })
+        });
+
         return (
             <View style={styles.header}>
                 <Animated.View style={[styles.lbsWeather, {opacity: lbsOpaticy}]}>
@@ -104,8 +120,7 @@ export default class HomePage extends Component {
                         translateY: searchY
                     }]
                 }}>
-                    <TouchableWithoutFeedback onPress={() => {
-                    }}>
+                    <TouchableWithoutFeedback onPress={this.openSearch.bind(this)}>
                         <View style={[styles.searchBtn, {backgroundColor: "#fff"}]}>
                             <Icon name="ios-search-outline" size={20} color="#666"/>
                             <Text style={{fontSize: 13, color: "#666", marginLeft: 5}}>{"输入商家，商品名称"}</Text>
@@ -127,74 +142,6 @@ export default class HomePage extends Component {
                 </Animated.View>
             </View>
         )
-    }
-
-    _renderFixHeader() {
-        let showY = this.state.scrollY.interpolate({
-            inputRange: [0, this.SEARCH_BOX_Y, this.SEARCH_FIX_Y, this.SEARCH_FIX_Y],
-            outputRange: [-9999, -9999, 0, 0]
-        })
-        return (
-            <Animated.View style={[styles.header, {
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                height: px2dp(isIOS ? 64 : 44),
-                paddingTop: px2dp(isIOS ? 25 : 10),
-                transform: [
-                    {translateY: showY}
-                ]
-            }]}>
-                <TouchableWithoutFeedback onPress={() => {
-                }}>
-                    <View style={[styles.searchBtn, {backgroundColor: "#fff"}]}>
-                        <Icon name="ios-search-outline" size={20} color="#666"/>
-                        <Text style={{fontSize: 13, color: "#666", marginLeft: 5}}>{"输入商家，商品名称"}</Text>
-                    </View>
-                </TouchableWithoutFeedback>
-            </Animated.View>
-        )
-    }
-
-    openSearch() {
-        this._scrollY = this.state.scrollY._value
-        const {timing} = Animated
-        Animated.parallel(['scrollY', 'searchView'].map(property => {
-            return timing(this.state[property], {
-                toValue: property == 'scrollY' ? this.SEARCH_FIX_Y : 1,
-                duration: 200
-            });
-        })).start(() => {
-            //this.setState({searchBtnShow: false})
-        })
-        TabView.hideTabBar()
-    }
-
-    closeSearch() {
-        if (this._scrollY >= this.SEARCH_FIX_Y) {
-            this.state.scrollY.setValue(this._scrollY)
-        } else {
-            Animated.timing(this.state.scrollY, {
-                toValue: this._scrollY,
-                duration: 200
-            }).start()
-        }
-        //this.refs["search"].blur()
-        Animated.timing(this.state.searchView, {
-            toValue: 0,
-            duration: 200
-        }).start(() => this.setState({searchBtnShow: true}))
-        TabView.showTabBar(200)
-    }
-
-    openLbs() {
-        this.setState({modalVisible: true})
-    }
-
-    changeLocation(location) {
-        this.setState({location})
     }
 
     _renderTypes() {
@@ -223,7 +170,7 @@ export default class HomePage extends Component {
                     }
                 </View>
             )
-        }
+        };
         return (
             <Swiper
                 height={h * 2.4}
@@ -279,6 +226,7 @@ export default class HomePage extends Component {
         })
 
     }
+
 
     _renderLtime() {
         return (
@@ -425,29 +373,47 @@ export default class HomePage extends Component {
     }
 
     _renderBZ() {
+        const {navigate} = this.props.navigation;
         return data.list.map((item, i) => {
             item.onPress = () => {
-                this.props.navigator.push({
-                    component: DetailPage,
-                    args: {}
-                })
-            }
+                navigate('Detail', {user: 'Lucy'})
+            };
             return (<Bz {...item} key={i}/>)
         })
     }
 
-    _onRefresh() {
-        this.setState({isRefreshing: true});
-        setTimeout(() => {
-            this.setState({isRefreshing: false});
-        }, 2000)
+    _renderFixHeader() {
+        let showY = this.state.scrollY.interpolate({
+            inputRange: [0, this.SEARCH_BOX_Y, this.SEARCH_FIX_Y, this.SEARCH_FIX_Y],
+            outputRange: [-9999, -9999, 0, 0]
+        })
+        return (
+            <Animated.View style={[styles.header, {
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                height: px2dp(isIOS ? 64 : 44),
+                paddingTop: px2dp(isIOS ? 25 : 10),
+                transform: [
+                    {translateY: showY}
+                ]
+            }]}>
+                <TouchableWithoutFeedback     onPress={this.openSearch.bind(this)}>
+                    <View style={[styles.searchBtn, {backgroundColor: "#fff"}]}>
+                        <Icon name="ios-search-outline" size={20} color="#666"/>
+                        <Text style={{fontSize: 13, color: "#666", marginLeft: 5}}>{"输入商家，商品名称"}</Text>
+                    </View>
+                </TouchableWithoutFeedback>
+            </Animated.View>
+        )
     }
 
     render() {
         return (
-            <View style={{flex: 1, backgroundColor: "#f3f3f3"}}>
+            <View style={styles.container}>
                 <ScrollView
-                    style={styles.scrollView}
                     onScroll={Animated.event(
                         [{nativeEvent: {contentOffset: {y: this.state.scrollY}}}]
                     )}
@@ -471,7 +437,6 @@ export default class HomePage extends Component {
                             </View>
                         </TouchableOpacity>
                     </View>
-
                     <View style={styles.recom}>
                         {this._renderHot()}
                     </View>
@@ -492,7 +457,8 @@ export default class HomePage extends Component {
                     </View>
                 </ScrollView>
                 {this._renderFixHeader()}
-                <SearchView show={this.state.searchView} scrollY={this.state.scrollY}/>
+                <Search searchView={this.state.searchView}
+                        closeModal={(() => this.setState({searchView: false})).bind(this)}/>
                 <LbsModal
                     modalVisible={this.state.modalVisible}
                     location={this.state.location}
@@ -500,28 +466,20 @@ export default class HomePage extends Component {
                     closeModal={(() => this.setState({modalVisible: false})).bind(this)}
                 />
             </View>
-        )
+        );
     }
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#f3f3f3"
+    },
     header: {
         backgroundColor: "#0398ff",
         height: headH,
         paddingTop: px2dp(isIOS ? 30 : 10),
         paddingHorizontal: 16
-    },
-    typesView: {
-        paddingBottom: 10,
-        flex: 1,
-        backgroundColor: "#fff",
-        flexDirection: "row",
-        flexWrap: "wrap"
-    },
-    typesItem: {
-        backgroundColor: "#fff",
-        justifyContent: "center",
-        alignItems: "center"
     },
     lbsWeather: {
         height: InputHeight,
@@ -529,36 +487,13 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between"
     },
-    placeholder: {
-        height: InputHeight,
-        position: "absolute",
-        left: 0,
-        top: 0,
-        right: 0,
-        borderRadius: px2dp(14),
-        backgroundColor: "#fff",
-        alignItems: "center"
-    },
+
     lbs: {
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center"
     },
     weather: {
-        flexDirection: "row",
-        alignItems: "center"
-    },
-    textInput: {
-        flex: 1,
-        fontSize: 13,
-        paddingLeft: 10,
-        paddingRight: 10,
-        height: InputHeight,
-        borderRadius: px2dp(14),
-        backgroundColor: "#fff"
-    },
-    searchHeadBox: {
-        height: InputHeight,
         flexDirection: "row",
         alignItems: "center"
     },
@@ -574,8 +509,17 @@ const styles = StyleSheet.create({
         marginTop: px2dp(14),
         flexDirection: "row"
     },
-    scrollView: {
-        marginBottom: px2dp(46)
+    typesView: {
+        paddingBottom: 10,
+        flex: 1,
+        backgroundColor: "#fff",
+        flexDirection: "row",
+        flexWrap: "wrap"
+    },
+    typesItem: {
+        backgroundColor: "#fff",
+        justifyContent: "center",
+        alignItems: "center"
     },
     recom: {
         flexDirection: "row",
@@ -594,13 +538,6 @@ const styles = StyleSheet.create({
         marginTop: 10,
         paddingVertical: 16
     },
-    time: {
-        paddingHorizontal: 3,
-        backgroundColor: "#333",
-        fontSize: px2dp(11),
-        color: "#fff",
-        marginHorizontal: 3
-    },
     recomItem: {
         width: width / 2,
         height: 70,
@@ -617,35 +554,4 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center"
     },
-    lTimeScrollView: {},
-    lTimeList: {
-        backgroundColor: "#fff",
-        alignItems: "center"
-    },
-    qtag: {
-        fontSize: 12,
-        borderWidth: 1,
-        color: "#00abff",
-        borderColor: "#00abff",
-        paddingHorizontal: 4,
-        paddingVertical: 3,
-        borderRadius: 5
-    },
-    gift: {
-        flex: 1,
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexDirection: "row",
-        backgroundColor: "#fff"
-    },
-    fixSearch: {
-        backgroundColor: "#0398ff",
-        height: isIOS ? 64 : 42,
-        paddingTop: isIOS ? 20 : 0,
-        paddingHorizontal: 16,
-        position: "absolute",
-        left: 0,
-        right: 0,
-        top: 0
-    }
-})
+});

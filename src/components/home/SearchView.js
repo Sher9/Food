@@ -17,7 +17,9 @@ export default class SearchView extends Component {
     constructor(props) {
         super(props)
     }
-
+    closeModal() {
+        this.props.closeModal();
+    }
     render() {
         let {show} = this.props
         return (
@@ -97,5 +99,12 @@ const styles = StyleSheet.create({
         paddingVertical: 3,
         borderRadius: 4
     },
-    scrollView: {}
+    searchBtn: {
+        borderRadius: InputHeight,
+        height: InputHeight,
+        flexDirection: "row",
+        backgroundColor: "#fff",
+        justifyContent: "center",
+        alignItems: "center"
+    },
 })

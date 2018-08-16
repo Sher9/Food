@@ -4,8 +4,9 @@
 import React, {Component} from "react";
 import {StackNavigator, TabNavigator} from "react-navigation";
 import Icon from 'react-native-vector-icons/Ionicons'
-import HomeScreen from "../components/home/Home1";
-import OrderScreen from "../components/order/Order2";
+import HomeScreen from "../components/home/Home";
+import OrderScreen from "../components/order/Order";
+import DiscoverScreen from "../components/discover/Discover";
 import MineScreen from "../components/my/My";
 import DetailScreen from '../components/detail/Detail';
 import Address from '../components/my/Address';
@@ -29,7 +30,7 @@ const IndexTabNavigator = TabNavigator({
         },
     },
     NearBy: {
-        screen: OrderScreen,
+        screen: DiscoverScreen,
         navigationOptions: {
             tabBarLabel: '发现',
             tabBarIcon: ({tintColor}) => (<Icon name="ios-compass-outline" size={16} color={tintColor}/>)
@@ -37,7 +38,7 @@ const IndexTabNavigator = TabNavigator({
         },
     },
     Order: {
-        screen: MineScreen,
+        screen: OrderScreen,
         navigationOptions: {
             tabBarLabel: '订单',
             tabBarIcon: ({tintColor}) => (<Icon name="ios-list-box-outline" size={16} color={tintColor}/>)
